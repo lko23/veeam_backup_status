@@ -1,0 +1,27 @@
+#region SCRIPT RELATED & RELEASE HISTORY
+<#
+    NAME:               Veeam jobs running longer than 24h
+    AUTHOR:             lko23
+    DATE:               08.02.2023
+    PURPOSE:           
+    REQUIREMENTS:      
+    VERSION:            1.0
+    RELEASE HISTORY:    08.02.23: Script initially created
+#>
+#endregion
+
+
+$delta = 24
+$maxTime = (get-date).AddHours(-$delta) 
+
+Get-VBOJobSession -status running | Where-Object {($_.CreationTime -le $maxTime)} `
+                     | select JobName, Status, CreationTime, EndTime | Sort-Object CreationTime -outvariable return
+
+if ($return -eq $null) {
+    $output = 'OK: No Veeam Backup Job is running longer than ' + $delta + ' hours'
+    Set-Content -Path D:\Veeam_Status\Veeam_Status.log -Value $output
+}
+else {
+    $output = 'WARNING: Veeam Backup Jobs are running longer than ' + $delta + ' hours'
+    Set-Content -Path D:\Veeam_Status\Veeam_Status.log -Value $output
+}
